@@ -50,8 +50,8 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 			Msg:       replyMsg,
 			Method:    "sendMessage",
 			ParseMode: "MarkdownV2",
-			ReplyTo:   int64(update.Message.MessageID),
-			ChatID:    update.Message.Chat.ID,
+			//ReplyTo:   int64(update.Message.MessageID),
+			ChatID: update.Message.Chat.ID,
 		}
 		msg, _ := json.Marshal(data)
 
