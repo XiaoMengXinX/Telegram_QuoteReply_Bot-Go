@@ -1,2 +1,5 @@
 # Telegram_QuoteReply_Bot-Go
-[WIP][DNU] A simple QuoteReply bot.
+
+A simple QuoteReply bot.
+
+DEMO: t.me/quote_reply_bot
