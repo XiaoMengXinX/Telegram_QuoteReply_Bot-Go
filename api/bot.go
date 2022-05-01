@@ -41,7 +41,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if update.Message != nil {
-		replyMsg := quoteReply(update.Message)
+		replyMsg := quoteReply(*update.Message)
 		if replyMsg == "" {
 			return
 		}
@@ -61,7 +61,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func quoteReply(message *tgbotapi.Message) (replyMsg string) {
+func quoteReply(message tgbotapi.Message) (replyMsg string) {
 	if !strings.HasPrefix(message.Text, "/") || (regexp.MustCompile(`^[\dA-Za-z/$]+$`).MatchString(message.Text) && !strings.HasPrefix(message.Text, "/%")) {
 		return
 	}
