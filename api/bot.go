@@ -41,7 +41,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if update.Message != nil {
-		replyMsg := quoteReply(*update.Message)
+		replyMsg := quoteReply(update.Message)
 		if replyMsg == "" {
 			return
 		}
@@ -61,7 +61,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func quoteReply(message tgbotapi.Message) (replyMsg string) {
+func quoteReply(message *tgbotapi.Message) (replyMsg string) {
 	if !strings.HasPrefix(message.Text, "/") || (regexp.MustCompile(`^[\dA-Za-z/$]+$`).MatchString(message.Text) && !strings.HasPrefix(message.Text, "/%")) {
 		return
 	}
@@ -75,7 +75,7 @@ func quoteReply(message tgbotapi.Message) (replyMsg string) {
 	senderID := message.From.ID
 
 	if len(keywords) < 2 {
-		if message.ReplyToMessage.MessageID != 0 {
+		if message.ReplyToMessage != nil {
 			replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
 			replyToID := message.ReplyToMessage.From.ID
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [%s](tg://user?id=%d)！", senderName, senderID, keywords[0], replyToName, replyToID)
@@ -83,7 +83,7 @@ func quoteReply(message tgbotapi.Message) (replyMsg string) {
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [自己](tg://user?id=%d)！", senderName, senderID, keywords[0], senderID)
 		}
 	} else {
-		if message.ReplyToMessage.MessageID != 0 {
+		if message.ReplyToMessage != nil {
 			replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
 			replyToID := message.ReplyToMessage.From.ID
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s [%s](tg://user?id=%d) %s！", senderName, senderID, keywords[0], replyToName, replyToID, keywords[1])
