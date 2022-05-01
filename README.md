@@ -2,4 +2,4 @@
 
 A simple QuoteReply bot.
 
-DEMO: t.me/quote_reply_bot
+Demo: https://t.me/quote_reply_bot
