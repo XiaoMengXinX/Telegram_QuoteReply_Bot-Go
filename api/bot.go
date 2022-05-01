@@ -66,7 +66,7 @@ func quoteReply(message *tgbotapi.Message) (replyMsg string) {
 		return
 	}
 
-	keywords := strings.SplitN(strings.Replace(message.Text, "$", "", 1)[1:], " ", 1)
+	keywords := strings.SplitN(mdV2escaper.Replace(strings.Replace(message.Text, "$", "", 1)[1:]), " ", 2)
 	if len(keywords) == 0 {
 		return
 	}
@@ -88,7 +88,7 @@ func quoteReply(message *tgbotapi.Message) (replyMsg string) {
 			replyToID := message.ReplyToMessage.From.ID
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s [%s](tg://user?id=%d) %s！", senderName, senderID, keywords[0], replyToName, replyToID, keywords[1])
 		} else {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [自己](tg://user?id=%d) %s！", senderName, senderID, keywords[0], senderID, keywords[1])
+			return fmt.Sprintf("[%s](tg://user?id=%d) %s [自己](tg://user?id=%d) %s！", senderName, senderID, keywords[0], senderID, keywords[1])
 		}
 	}
 }
