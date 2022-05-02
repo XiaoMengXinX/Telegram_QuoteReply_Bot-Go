@@ -1,4 +1,4 @@
-module github.com/XiaoMengXinX/Telegram_QuoteReply_Bot-Go
+module go-quote-reply-bot
 
 go 1.18
 
