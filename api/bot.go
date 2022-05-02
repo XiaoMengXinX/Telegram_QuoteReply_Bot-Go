@@ -62,7 +62,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func quoteReply(message *tgbotapi.Message) (replyMsg string) {
-	if !strings.HasPrefix(message.Text, "/") || (regexp.MustCompile(`^[\dA-Za-z/$]+$`).MatchString(message.Text) && !strings.HasPrefix(message.Text, "/$")) {
+	if !strings.HasPrefix(message.Text, "/") || (regexp.MustCompile(`^[\s\dA-Za-z/$]+$`).MatchString(message.Text) && !strings.HasPrefix(message.Text, "/$")) {
 		return
 	}
 
