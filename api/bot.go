@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
+	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -41,7 +41,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if update.Message != nil {
-		replyMsg := quoteReply(update.Message)
+		replyMsg := QuoteReply(update.Message)
 		if replyMsg == "" {
 			return
 		}
@@ -61,8 +61,8 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func quoteReply(message *tgbotapi.Message) (replyMsg string) {
-	if !strings.HasPrefix(message.Text, "/") || (regexp.MustCompile(`^[\s\dA-Za-z/$]+$`).MatchString(message.Text) && !strings.HasPrefix(message.Text, "/$")) {
+func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
+	if !strings.HasPrefix(message.Text, "/") || (isASCII(message.Text) && !strings.HasPrefix(message.Text, "/$")) {
 		return
 	}
 
@@ -91,4 +91,13 @@ func quoteReply(message *tgbotapi.Message) (replyMsg string) {
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s [自己](tg://user?id=%d) %s！", senderName, senderID, keywords[0], senderID, keywords[1])
 		}
 	}
+}
+
+func isASCII(s string) bool {
+	for _, r := range s {
+		if r > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
 }
