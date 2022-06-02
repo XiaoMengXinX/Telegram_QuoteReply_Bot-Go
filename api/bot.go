@@ -62,7 +62,10 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
-	if !strings.HasPrefix(message.Text, "/") || (isASCII(message.Text) && !strings.HasPrefix(message.Text, "/$")) {
+	if len(message.Text) < 2 {
+		return
+	}
+	if !strings.HasPrefix(message.Text, "/") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "/$")) {
 		return
 	}
 
