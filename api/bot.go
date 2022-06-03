@@ -67,6 +67,8 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	}
 	if !strings.HasPrefix(message.Text, "/") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "/$")) {
 		return
+	} else if !strings.HasPrefix(message.Text, "\\") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "\\$")) {
+		return
 	}
 
 	keywords := strings.SplitN(mdV2escaper.Replace(strings.Replace(message.Text, "$", "", 1)[1:]), " ", 2)
@@ -77,19 +79,21 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	senderName := mdV2escaper.Replace(message.From.FirstName + " " + message.From.LastName)
 	senderID := message.From.ID
 
-	if len(keywords) < 2 {
-		if message.ReplyToMessage != nil {
-			replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
-			replyToID := message.ReplyToMessage.From.ID
+	if message.ReplyToMessage != nil {
+		replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
+		replyToID := message.ReplyToMessage.From.ID
+		if strings.HasPrefix(message.Text, "\\") {
+			senderName, replyToName = replyToName, senderName
+			senderID, replyToID = replyToID, senderID
+		}
+		if len(keywords) < 2 {
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [%s](tg://user?id=%d)！", senderName, senderID, keywords[0], replyToName, replyToID)
 		} else {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [自己](tg://user?id=%d)！", senderName, senderID, keywords[0], senderID)
+			return fmt.Sprintf("[%s](tg://user?id=%d) %s [%s](tg://user?id=%d) %s！", senderName, senderID, keywords[0], replyToName, replyToID, keywords[1])
 		}
 	} else {
-		if message.ReplyToMessage != nil {
-			replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
-			replyToID := message.ReplyToMessage.From.ID
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s [%s](tg://user?id=%d) %s！", senderName, senderID, keywords[0], replyToName, replyToID, keywords[1])
+		if len(keywords) < 2 {
+			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [自己](tg://user?id=%d)！", senderName, senderID, keywords[0], senderID)
 		} else {
 			return fmt.Sprintf("[%s](tg://user?id=%d) %s [自己](tg://user?id=%d) %s！", senderName, senderID, keywords[0], senderID, keywords[1])
 		}
