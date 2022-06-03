@@ -66,9 +66,9 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 		return
 	}
 	if !strings.HasPrefix(message.Text, "/") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "/$")) {
-		return
-	} else if !strings.HasPrefix(message.Text, "\\") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "\\$")) {
-		return
+		if !strings.HasPrefix(message.Text, "\\") || (isASCII(message.Text[:2]) && !strings.HasPrefix(message.Text, "\\$")) {
+			return
+		}
 	}
 
 	keywords := strings.SplitN(mdV2escaper.Replace(strings.Replace(message.Text, "$", "", 1)[1:]), " ", 2)
