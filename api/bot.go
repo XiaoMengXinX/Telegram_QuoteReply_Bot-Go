@@ -77,30 +77,36 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	}
 
 	senderName := mdV2escaper.Replace(message.From.FirstName + " " + message.From.LastName)
-	senderID := message.From.ID
+	senderURI := fmt.Sprintf("tg://user?id=%d", message.From.ID)
 
 	if message.SenderChat != nil {
 		senderName = mdV2escaper.Replace(message.SenderChat.Title)
-		senderID = message.SenderChat.ID
+		senderURI = fmt.Sprintf("https://t.me/%s", message.SenderChat.UserName)
 	}
 
 	if message.ReplyToMessage != nil {
 		replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
-		replyToID := message.ReplyToMessage.From.ID
+		replyToURI := fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
+
+		if message.ReplyToMessage.SenderChat != nil {
+			replyToName = mdV2escaper.Replace(message.ReplyToMessage.SenderChat.Title)
+			replyToURI = fmt.Sprintf("https://t.me/%s", message.ReplyToMessage.SenderChat.UserName)
+		}
+
 		if strings.HasPrefix(message.Text, "\\") {
 			senderName, replyToName = replyToName, senderName
-			senderID, replyToID = replyToID, senderID
+			senderURI, replyToURI = replyToURI, senderURI
 		}
 		if len(keywords) < 2 {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [%s](tg://user?id=%d)！", senderName, senderID, keywords[0], replyToName, replyToID)
+			return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
 		} else {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s [%s](tg://user?id=%d) %s！", senderName, senderID, keywords[0], replyToName, replyToID, keywords[1])
+			return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
 		}
 	} else {
 		if len(keywords) < 2 {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s了 [自己](tg://user?id=%d)！", senderName, senderID, keywords[0], senderID)
+			return fmt.Sprintf("[%s](%s) %s了 [自己](%s)！", senderName, senderURI, keywords[0], senderURI)
 		} else {
-			return fmt.Sprintf("[%s](tg://user?id=%d) %s [自己](tg://user?id=%d) %s！", senderName, senderID, keywords[0], senderID, keywords[1])
+			return fmt.Sprintf("[%s](%s) %s [自己](%s) %s！", senderName, senderURI, keywords[0], senderURI, keywords[1])
 		}
 	}
 }
