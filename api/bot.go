@@ -20,11 +20,12 @@ var mdV2escaper = strings.NewReplacer(
 )
 
 type Response struct {
-	Msg       string `json:"text"`
-	ChatID    int64  `json:"chat_id"`
-	ReplyTo   int64  `json:"reply_to_message_id"`
-	ParseMode string `json:"parse_mode"`
-	Method    string `json:"method"`
+	Msg                   string `json:"text"`
+	ChatID                int64  `json:"chat_id"`
+	ReplyTo               int64  `json:"reply_to_message_id"`
+	ParseMode             string `json:"parse_mode"`
+	Method                string `json:"method"`
+	DisableWebPagePreview bool   `json:"disable_web_page_preview"`
 }
 
 func BotHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,11 +48,12 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		data := Response{
-			Msg:       replyMsg,
-			Method:    "sendMessage",
-			ParseMode: "MarkdownV2",
+			Msg:                   replyMsg,
+			Method:                "sendMessage",
+			ParseMode:             "MarkdownV2",
+			ChatID:                update.Message.Chat.ID,
+			DisableWebPagePreview: true,
 			//ReplyTo:   int64(update.Message.MessageID),
-			ChatID: update.Message.Chat.ID,
 		}
 		msg, _ := json.Marshal(data)
 
