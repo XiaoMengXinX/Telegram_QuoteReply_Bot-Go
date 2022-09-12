@@ -79,6 +79,11 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	senderName := mdV2escaper.Replace(message.From.FirstName + " " + message.From.LastName)
 	senderID := message.From.ID
 
+	if message.SenderChat != nil {
+		senderName = mdV2escaper.Replace(message.SenderChat.Title)
+		senderID = message.SenderChat.ID
+	}
+
 	if message.ReplyToMessage != nil {
 		replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
 		replyToID := message.ReplyToMessage.From.ID
