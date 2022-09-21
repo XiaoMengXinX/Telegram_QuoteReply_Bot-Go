@@ -90,7 +90,7 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 		replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
 		replyToURI := fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
 
-		if message.ReplyToMessage.From.IsBot || len(message.ReplyToMessage.Entities) != 0 {
+		if message.ReplyToMessage.From.IsBot && len(message.ReplyToMessage.Entities) != 0 {
 			if message.ReplyToMessage.Entities[0].Type == "text_mention" {
 				replyToName = mdV2escaper.Replace(message.ReplyToMessage.Entities[0].User.FirstName + " " + message.ReplyToMessage.Entities[0].User.LastName)
 				replyToURI = fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.Entities[0].User.ID)
