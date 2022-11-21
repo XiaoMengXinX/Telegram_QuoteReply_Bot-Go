@@ -19,10 +19,22 @@ var mdV2escaper = strings.NewReplacer(
 	"\\|", "{", "\\{", "}", "\\}", ".", "\\.", "!", "\\!",
 )
 
+type Update struct {
+	UpdateID int64    `json:"update_id"`
+	Message  *Message `json:"message,omitempty"`
+}
+
+type Message struct {
+	tgbotapi.Message
+	IsTopicMessage  bool  `json:"is_topic_message"`
+	MessageThreadID int64 `json:"message_thread_id"`
+}
+
 type Response struct {
 	Msg                   string `json:"text"`
 	ChatID                int64  `json:"chat_id"`
 	ReplyTo               int64  `json:"reply_to_message_id"`
+	MessageThreadID       int64  `json:"message_thread_id"`
 	ParseMode             string `json:"parse_mode"`
 	Method                string `json:"method"`
 	DisableWebPagePreview bool   `json:"disable_web_page_preview"`
@@ -33,7 +45,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := ioutil.ReadAll(r.Body)
 
-	var update tgbotapi.Update
+	var update Update
 
 	err := json.Unmarshal(body, &update)
 	if err != nil {
@@ -55,6 +67,9 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 			DisableWebPagePreview: true,
 			//ReplyTo:   int64(update.Message.MessageID),
 		}
+		if update.Message.IsTopicMessage {
+			data.MessageThreadID = update.Message.MessageThreadID
+		}
 		msg, _ := json.Marshal(data)
 
 		w.Header().Add("Content-Type", "application/json")
@@ -63,7 +78,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
+func QuoteReply(message *Message) (replyMsg string) {
 	if len(message.Text) < 2 {
 		return
 	}
