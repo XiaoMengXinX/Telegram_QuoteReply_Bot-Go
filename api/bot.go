@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -11,24 +11,6 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
-
-var mdV2escaper = strings.NewReplacer(
-	"_", "\\_", "*", "\\*", "[", "\\[", "]", "\\]", "(",
-	"\\(", ")", "\\)", "~", "\\~", "`", "\\`", ">", "\\>",
-	"#", "\\#", "+", "\\+", "-", "\\-", "=", "\\=", "|",
-	"\\|", "{", "\\{", "}", "\\}", ".", "\\.", "!", "\\!",
-)
-
-type Update struct {
-	UpdateID int64    `json:"update_id"`
-	Message  *Message `json:"message,omitempty"`
-}
-
-type Message struct {
-	tgbotapi.Message
-	IsTopicMessage  bool  `json:"is_topic_message"`
-	MessageThreadID int64 `json:"message_thread_id"`
-}
 
 type Response struct {
 	Msg                   string `json:"text"`
@@ -43,9 +25,9 @@ type Response struct {
 func BotHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 
-	var update Update
+	var update tgbotapi.Update
 
 	err := json.Unmarshal(body, &update)
 	if err != nil {
@@ -68,7 +50,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 			//ReplyTo:   int64(update.Message.MessageID),
 		}
 		if update.Message.IsTopicMessage {
-			data.MessageThreadID = update.Message.MessageThreadID
+			data.MessageThreadID = int64(update.Message.MessageThreadID)
 		}
 		msg, _ := json.Marshal(data)
 
@@ -78,7 +60,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func QuoteReply(message *Message) (replyMsg string) {
+func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	if len(message.Text) < 2 {
 		return
 	}
@@ -88,32 +70,32 @@ func QuoteReply(message *Message) (replyMsg string) {
 		}
 	}
 
-	keywords := strings.SplitN(mdV2escaper.Replace(strings.Replace(message.Text, "$", "", 1)[1:]), " ", 2)
+	keywords := strings.SplitN(tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, strings.Replace(message.Text, "$", "", 1)[1:]), " ", 2)
 	if len(keywords) == 0 {
 		return
 	}
 
-	senderName := mdV2escaper.Replace(message.From.FirstName + " " + message.From.LastName)
+	senderName := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.From.FirstName+" "+message.From.LastName)
 	senderURI := fmt.Sprintf("tg://user?id=%d", message.From.ID)
 
 	if message.SenderChat != nil {
-		senderName = mdV2escaper.Replace(message.SenderChat.Title)
+		senderName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.SenderChat.Title)
 		senderURI = fmt.Sprintf("https://t.me/%s", message.SenderChat.UserName)
 	}
 
 	if message.ReplyToMessage != nil {
-		replyToName := mdV2escaper.Replace(message.ReplyToMessage.From.FirstName + " " + message.ReplyToMessage.From.LastName)
+		replyToName := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.From.FirstName+" "+message.ReplyToMessage.From.LastName)
 		replyToURI := fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
 
 		if message.ReplyToMessage.From.IsBot && len(message.ReplyToMessage.Entities) != 0 {
 			if message.ReplyToMessage.Entities[0].Type == "text_mention" {
-				replyToName = mdV2escaper.Replace(message.ReplyToMessage.Entities[0].User.FirstName + " " + message.ReplyToMessage.Entities[0].User.LastName)
+				replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.Entities[0].User.FirstName+" "+message.ReplyToMessage.Entities[0].User.LastName)
 				replyToURI = fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.Entities[0].User.ID)
 			}
 		}
 
 		if message.ReplyToMessage.SenderChat != nil {
-			replyToName = mdV2escaper.Replace(message.ReplyToMessage.SenderChat.Title)
+			replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.SenderChat.Title)
 			replyToURI = fmt.Sprintf("https://t.me/%s", message.ReplyToMessage.SenderChat.UserName)
 		}
 
