@@ -83,6 +83,12 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 		senderURI = fmt.Sprintf("https://t.me/%s", message.SenderChat.UserName)
 	}
 
+	if message.ReplyToMessage != nil && message.IsTopicMessage {
+		if message.ReplyToMessage.MessageID == message.MessageThreadID {
+			message.ReplyToMessage = nil
+		}
+	}
+
 	if message.ReplyToMessage != nil {
 		replyToName := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.From.FirstName+" "+message.ReplyToMessage.From.LastName)
 		replyToURI := fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
