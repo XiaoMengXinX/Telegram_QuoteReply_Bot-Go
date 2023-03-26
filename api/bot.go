@@ -90,7 +90,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 
 	if message.SenderChat != nil {
 		senderName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.SenderChat.Title)
-		senderURI = fmt.Sprintf("https://t.me/%s", message.SenderChat.UserName)
+		senderURI = fmt.Sprintf("tg://user?id=%s", message.SenderChat.UserName)
 	}
 
 	if message.ReplyToMessage != nil && message.IsTopicMessage {
@@ -112,7 +112,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 
 		if message.ReplyToMessage.SenderChat != nil {
 			replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.SenderChat.Title)
-			replyToURI = fmt.Sprintf("https://t.me/%s", message.ReplyToMessage.SenderChat.UserName)
+			replyToURI = fmt.Sprintf("tg://user?id=%s", message.ReplyToMessage.SenderChat.UserName)
 		}
 
 		if strings.HasPrefix(message.Text, "\\") {
@@ -129,7 +129,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 		if text := strings.Split(textNoCommand, "@"); message.ReplyToMessage == nil && len(text) > 1 {
 			if name := getUserByUsername(text[1]); name != "" {
 				replyToName = name
-				replyToURI = fmt.Sprintf("https://t.me/%s", text[1])
+				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
 			}
 			if len(keywords) < 2 {
 				return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
@@ -169,10 +169,19 @@ func getUserByUsername(username string) (name string) {
 		return
 	}
 
-	reName := regexp.MustCompile(`(?<=<meta property="og:title" content=").*?(?=")`)
-	name = reName.FindString(string(body))
-	reTitle := regexp.MustCompile(`(?<=<title>).*?(?=</title>)`)
-	pageTitle := reTitle.FindString(string(body))
+	reName := regexp.MustCompile(`<meta property="og:title" content="([^"]*)"`)
+	match := reName.FindStringSubmatch(string(body))
+	if len(match) > 1 {
+		name = match[1]
+	}
+	pageTitle := ""
+	reTitle1 := regexp.MustCompile(`<title>`)
+	reTitle2 := regexp.MustCompile(`</title>`)
+	start := reTitle1.FindStringIndex(string(body))
+	end := reTitle2.FindStringIndex(string(body))
+	if start != nil && end != nil {
+		pageTitle = string(body)[start[1]:end[0]]
+	}
 
 	if pageTitle == name { // 用户不存在
 		name = ""
