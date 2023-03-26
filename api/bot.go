@@ -119,31 +119,23 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 			senderName, replyToName = replyToName, senderName
 			senderURI, replyToURI = replyToURI, senderURI
 		}
-		if len(keywords) < 2 {
-			return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
-		} else {
-			return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
-		}
 	} else {
 		textNoCommand := strings.TrimPrefix(strings.TrimPrefix(message.Text, "/"), "$")
-		log.Println(textNoCommand)
 		if text := strings.Split(textNoCommand, "@"); len(text) > 1 {
 			if name := getUserByUsername(text[1]); name != "" {
 				replyToName = name
 				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
 			}
-			if len(keywords) < 2 {
-				return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
-			} else {
-				return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
-			}
-		} else {
-			if len(keywords) < 2 {
-				return fmt.Sprintf("[%s](%s) %s了 [自己](%s)！", senderName, senderURI, keywords[0], senderURI)
-			} else {
-				return fmt.Sprintf("[%s](%s) %s [自己](%s) %s！", senderName, senderURI, keywords[0], senderURI, keywords[1])
-			}
 		}
+		if replyToName == "" {
+			replyToName = "自己"
+			replyToURI = senderURI
+		}
+	}
+	if len(keywords) < 2 {
+		return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
+	} else {
+		return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
 	}
 }
 
