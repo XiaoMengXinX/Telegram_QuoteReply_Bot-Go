@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -36,7 +37,14 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if update.Message != nil {
-		replyMsg := QuoteReply(update.Message)
+		bot := &tgbotapi.BotAPI{
+			Token:  strings.ReplaceAll(r.URL.Path, "/", ""),
+			Client: &http.Client{},
+			Buffer: 100,
+		}
+		bot.SetAPIEndpoint(tgbotapi.APIEndpoint)
+
+		replyMsg := QuoteReply(bot, update.Message)
 		if replyMsg == "" {
 			return
 		}
@@ -60,7 +68,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
+func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg string) {
 	if len(message.Text) < 2 {
 		return
 	}
@@ -77,6 +85,8 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 
 	senderName := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.From.FirstName+" "+message.From.LastName)
 	senderURI := fmt.Sprintf("tg://user?id=%d", message.From.ID)
+	replyToName := ""
+	replyToURI := ""
 
 	if message.SenderChat != nil {
 		senderName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.SenderChat.Title)
@@ -90,8 +100,8 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 	}
 
 	if message.ReplyToMessage != nil {
-		replyToName := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.From.FirstName+" "+message.ReplyToMessage.From.LastName)
-		replyToURI := fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
+		replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.From.FirstName+" "+message.ReplyToMessage.From.LastName)
+		replyToURI = fmt.Sprintf("tg://user?id=%d", message.ReplyToMessage.From.ID)
 
 		if message.ReplyToMessage.From.IsBot && len(message.ReplyToMessage.Entities) != 0 {
 			if message.ReplyToMessage.Entities[0].Type == "text_mention" {
@@ -115,10 +125,23 @@ func QuoteReply(message *tgbotapi.Message) (replyMsg string) {
 			return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
 		}
 	} else {
-		if len(keywords) < 2 {
-			return fmt.Sprintf("[%s](%s) %s了 [自己](%s)！", senderName, senderURI, keywords[0], senderURI)
+		textNoCommand := strings.TrimPrefix(strings.TrimPrefix(message.Text, "/"), "$")
+		if text := strings.Split(textNoCommand, "@"); message.ReplyToMessage == nil && len(text) > 1 {
+			if name := getUserByUsername(text[1]); name != "" {
+				replyToName = name
+				replyToURI = fmt.Sprintf("https://t.me/%s", text[1])
+			}
+			if len(keywords) < 2 {
+				return fmt.Sprintf("[%s](%s) %s了 [%s](%s)！", senderName, senderURI, keywords[0], replyToName, replyToURI)
+			} else {
+				return fmt.Sprintf("[%s](%s) %s [%s](%s) %s！", senderName, senderURI, keywords[0], replyToName, replyToURI, keywords[1])
+			}
 		} else {
-			return fmt.Sprintf("[%s](%s) %s [自己](%s) %s！", senderName, senderURI, keywords[0], senderURI, keywords[1])
+			if len(keywords) < 2 {
+				return fmt.Sprintf("[%s](%s) %s了 [自己](%s)！", senderName, senderURI, keywords[0], senderURI)
+			} else {
+				return fmt.Sprintf("[%s](%s) %s [自己](%s) %s！", senderName, senderURI, keywords[0], senderURI, keywords[1])
+			}
 		}
 	}
 }
@@ -130,4 +153,29 @@ func isASCII(s string) bool {
 		}
 	}
 	return true
+}
+
+func getUserByUsername(username string) (name string) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", fmt.Sprintf("https://t.me/%s", username), nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if len(body) == 0 {
+		return
+	}
+
+	reName := regexp.MustCompile(`(?<=<meta property="og:title" content=").*?(?=")`)
+	name = reName.FindString(string(body))
+	reTitle := regexp.MustCompile(`(?<=<title>).*?(?=</title>)`)
+	pageTitle := reTitle.FindString(string(body))
+
+	if pageTitle == name { // 用户不存在
+		name = ""
+	}
+	return
 }
