@@ -126,7 +126,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 		}
 	} else {
 		textNoCommand := strings.TrimPrefix(strings.TrimPrefix(message.Text, "/"), "$")
-		fmt.Println(textNoCommand)
+		log.Println(textNoCommand)
 		if text := strings.Split(textNoCommand, "@"); len(text) > 1 {
 			if name := getUserByUsername(text[1]); name != "" {
 				replyToName = name
