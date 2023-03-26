@@ -122,7 +122,9 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 	} else {
 		textNoCommand := strings.TrimPrefix(strings.TrimPrefix(message.Text, "/"), "$")
 		if text := strings.Split(textNoCommand, "@"); len(text) > 1 {
-			if name := getUserByUsername(text[1]); name != "" {
+			name := getUserByUsername(text[1])
+			fmt.Println(name)
+			if name != "" {
 				replyToName = name
 				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
 			}
@@ -156,12 +158,7 @@ func getUserByUsername(username string) (name string) {
 		return
 	}
 	defer resp.Body.Close()
-
 	body, _ := io.ReadAll(resp.Body)
-	log.Println(string(body))
-	if len(body) == 0 {
-		return
-	}
 
 	reName := regexp.MustCompile(`<meta property="og:title" content="([^"]*)"`)
 	match := reName.FindStringSubmatch(string(body))
