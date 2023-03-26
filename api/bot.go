@@ -158,6 +158,7 @@ func getUserByUsername(username string) (name string) {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
+	log.Println(string(body))
 	if len(body) == 0 {
 		return
 	}
