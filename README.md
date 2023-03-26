@@ -7,5 +7,5 @@ Demo: [@fish_quote_reply_bot](https://t.me/fish_quote_reply_bot)
 ## How to Deploy
 
 1. Fork this repo and deploy to Vercel
-2. Set webhook method by requesting <https://api.telegram.org/bot[YOUR_TELEGRAM_BOT_TOKEN]/setWebhook?url=https://[YOUR_VERCEL_PROJ_NAME].vercel.app/[YOUR_TELEGRAM_BOT_TOKEN]>
+2. Set webhook method by requesting <https://api.telegram.org/bot[YOUR_TELEGRAM_BOT_TOKEN]/setWebhook?url=https://[YOUR_VERCEL_PROJ_NAME].vercel.app/api/bot>
 3. Enjoy it.
