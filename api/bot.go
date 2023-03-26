@@ -101,7 +101,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 
 	if message.SenderChat != nil {
 		senderName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.SenderChat.Title)
-		senderURI = fmt.Sprintf("tg://user?id=%s", message.SenderChat.UserName)
+		senderURI = fmt.Sprintf("https://t.me/%s", message.SenderChat.UserName)
 	}
 
 	if message.ReplyToMessage != nil && message.IsTopicMessage {
@@ -123,7 +123,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 
 		if message.ReplyToMessage.SenderChat != nil {
 			replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, message.ReplyToMessage.SenderChat.Title)
-			replyToURI = fmt.Sprintf("tg://user?id=%s", message.ReplyToMessage.SenderChat.UserName)
+			replyToURI = fmt.Sprintf("https://t.me/%s", message.ReplyToMessage.SenderChat.UserName)
 		}
 
 		if strings.HasPrefix(message.Text, "\\") {
@@ -137,7 +137,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 			if name != "" {
 				keywords[0] = text[0]
 				replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, name)
-				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
+				replyToURI = fmt.Sprintf("https://t.me/%s", text[1])
 			}
 		}
 		if replyToName == "" {
