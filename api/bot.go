@@ -44,40 +44,38 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		bot.SetAPIEndpoint(tgbotapi.APIEndpoint)
 
-		reply := tgbotapi.NewMessage(update.Message.Chat.ID, QuoteReply(bot, update.Message))
-		reply.ParseMode = "MarkdownV2"
-		reply.DisableWebPagePreview = true
-		if update.Message.IsTopicMessage {
-			reply.MessageThreadID = update.Message.MessageThreadID
+		/*
+				reply := tgbotapi.NewMessage(update.Message.Chat.ID, QuoteReply(bot, update.Message))
+				reply.ParseMode = "MarkdownV2"
+				reply.DisableWebPagePreview = true
+				if update.Message.IsTopicMessage {
+					reply.MessageThreadID = update.Message.MessageThreadID
+				}
+
+			_, _ = bot.Send(reply)
+		*/
+
+		replyMsg := QuoteReply(bot, update.Message)
+		if replyMsg == "" {
+			return
 		}
 
-		_, _ = bot.Send(reply)
+		data := Response{
+			Msg:                   replyMsg,
+			Method:                "sendMessage",
+			ParseMode:             "MarkdownV2",
+			ChatID:                update.Message.Chat.ID,
+			DisableWebPagePreview: true,
+			//ReplyTo:   int64(update.Message.MessageID),
+		}
+		if update.Message.IsTopicMessage {
+			data.MessageThreadID = int64(update.Message.MessageThreadID)
+		}
+		msg, _ := json.Marshal(data)
 
-		/*
+		w.Header().Add("Content-Type", "application/json")
 
-			replyMsg := QuoteReply(bot, update.Message)
-			if replyMsg == "" {
-				return
-			}
-
-			data := Response{
-				Msg:                   replyMsg,
-				Method:                "sendMessage",
-				ParseMode:             "MarkdownV2",
-				ChatID:                update.Message.Chat.ID,
-				DisableWebPagePreview: true,
-				//ReplyTo:   int64(update.Message.MessageID),
-			}
-			if update.Message.IsTopicMessage {
-				data.MessageThreadID = int64(update.Message.MessageThreadID)
-			}
-			msg, _ := json.Marshal(data)
-
-			w.Header().Add("Content-Type", "application/json")
-
-			_, _ = fmt.Fprintf(w, string(msg))
-
-		*/
+		_, _ = fmt.Fprintf(w, string(msg))
 	}
 }
 
@@ -137,7 +135,7 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 		if text := strings.Split(textNoCommand, "@"); len(text) > 1 {
 			name := getUserByUsername(text[1])
 			if name != "" {
-				replyToName = name
+				replyToName = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, name)
 				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
 			}
 		}
