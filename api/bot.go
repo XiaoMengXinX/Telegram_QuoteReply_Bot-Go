@@ -126,7 +126,8 @@ func QuoteReply(bot *tgbotapi.BotAPI, message *tgbotapi.Message) (replyMsg strin
 		}
 	} else {
 		textNoCommand := strings.TrimPrefix(strings.TrimPrefix(message.Text, "/"), "$")
-		if text := strings.Split(textNoCommand, "@"); message.ReplyToMessage == nil && len(text) > 1 {
+		fmt.Println(textNoCommand)
+		if text := strings.Split(textNoCommand, "@"); len(text) > 1 {
 			if name := getUserByUsername(text[1]); name != "" {
 				replyToName = name
 				replyToURI = fmt.Sprintf("tg://user?id=%s", text[1])
