@@ -38,7 +38,7 @@ func BotHandler(w http.ResponseWriter, r *http.Request) {
 
 	if update.Message != nil {
 		bot := &tgbotapi.BotAPI{
-			Token:  strings.ReplaceAll(r.URL.Path, "/api/bot/", ""),
+			Token:  strings.ReplaceAll(r.URL.Path, "/", ""),
 			Client: &http.Client{},
 			Buffer: 100,
 		}
